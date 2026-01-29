@@ -7,6 +7,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <std_msgs/Float32.h>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <fstream>
@@ -30,6 +31,7 @@ public:
         gravity_pub_  = nh_.advertise<geometry_msgs::Vector3Stamped>("/projected_gravity", 10);
         velocity_pub_ = nh_.advertise<geometry_msgs::Vector3Stamped>("/projected_velocity", 10);
         angular_pub_  = nh_.advertise<geometry_msgs::Vector3Stamped>("/projected_omega", 10);
+        heading_pub_  = nh_.advertise<std_msgs::Float32>("/current_heading", 10);
 
         // --- 4. 订阅与定时器 (50Hz) ---
         vrpn_sub_ = nh_.subscribe(vrpn_topic_, 10, &ResetFourElement::vrpnCallback, this);
@@ -81,6 +83,7 @@ private:
         // 四元数转换 (w, x, -z, y)
         Eigen::Quaterniond q_raw(msg->pose.orientation.w, msg->pose.orientation.x, 
                                  msg->pose.orientation.y, msg->pose.orientation.z);
+        q_raw_ = q_raw; // 保存原始四元数用于heading计算
         q_zup_ = Eigen::Quaterniond(q_raw.w(), q_raw.x(), -q_raw.z(), q_raw.y());
         q_zup_.normalize();
 
@@ -127,7 +130,19 @@ private:
                             proj_grav.x(), proj_grav.y(), proj_grav.z(),
                             last_vel_body_.x(), last_vel_body_.y(), last_vel_body_.z(),
                             last_omega_body_.x(), last_omega_body_.y(), last_omega_body_.z());
+                            last_omega_body_.x(), last_omega_body_.y(), last_omega_body_.z());
         }
+
+        // 4. 计算并发布 Heading (基于原始 VRPN 四元数)
+        // Body frame (1, 0, 0) -> World frame
+        Eigen::Vector3d forward_body(1.0, 0.0, 0.0);
+        Eigen::Vector3d forward_world = q_raw_.normalized() * forward_body;
+        // 计算 Heading (atan2(y, x))
+        double heading = std::atan2(forward_world.y(), forward_world.x());
+        
+        std_msgs::Float32 heading_msg;
+        heading_msg.data = heading;
+        heading_pub_.publish(heading_msg);
 
         last_pos_zup_ = curr_pos_zup_;
         last_q_zup_ = q_zup_;
@@ -151,14 +166,14 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber vrpn_sub_;
     ros::Timer timer_;
-    ros::Publisher gravity_pub_, velocity_pub_, angular_pub_;
+    ros::Publisher gravity_pub_, velocity_pub_, angular_pub_, heading_pub_;
     std::ofstream csv_grav_, csv_vel_, csv_omega_;
 
     std::string vrpn_topic_;
     std_msgs::Header header_;
     bool has_data_, has_last_state_, debug_output_;
     Eigen::Vector3d curr_pos_zup_, last_pos_zup_, last_omega_body_, last_vel_body_;
-    Eigen::Quaterniond q_zup_, last_q_zup_;
+    Eigen::Quaterniond q_zup_, last_q_zup_, q_raw_;
     double lpf_alpha_omega_, lpf_alpha_vel_;
 };
 
