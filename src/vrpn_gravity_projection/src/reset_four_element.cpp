@@ -130,7 +130,7 @@ private:
                             proj_grav.x(), proj_grav.y(), proj_grav.z(),
                             last_vel_body_.x(), last_vel_body_.y(), last_vel_body_.z(),
                             last_omega_body_.x(), last_omega_body_.y(), last_omega_body_.z());
-                            last_omega_body_.x(), last_omega_body_.y(), last_omega_body_.z());
+                            //  last_omega_body_.x(), last_omega_body_.y(), last_omega_body_.z());
         }
 
         // 4. 计算并发布 Heading (基于原始 VRPN 四元数)

@@ -1,5 +1,5 @@
 <launch>
-    <arg name="server" default="172.16.21.168"/>
+    <arg name="server" default="172.16.20.189"/>
     <arg name="port" default="3883"/>
     <arg name="rigid_body_name" default="Rigid"/> <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
         <param name="server" value="$(arg server)" />
