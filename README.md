@@ -21,6 +21,8 @@ source devel/setup.bash
 
 ```bash
 ping 172.16.21.168
+vrpn_gravity_projection.launch 
+reset_four_element.launch
 roslaunch vrpn_client_ros sample.launch server:=172.16.21.168
 
 rostopic echo /vrpn_client_node/Rigid/pose
@@ -31,6 +33,7 @@ roslaunch vrpn_gravity_projection vrpn_gravity_projection.launch enable_velocity
 ##转换四元素
 roslaunch vrpn_gravity_projection reset_four_element.launch
 
+#reset_four_element.cpp  timer_    = nh_.createTimer(ros::Duration(0.02), &ResetFourElement::timerCallback, this) 修改传输频率
 
 转换twist(x,y,z)-->(x,-z,y)
 rosrun vrpn_gravity_projection twist_echo

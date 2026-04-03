@@ -35,7 +35,7 @@ public:
 
         // --- 4. 订阅与定时器 (50Hz) ---
         vrpn_sub_ = nh_.subscribe(vrpn_topic_, 10, &ResetFourElement::vrpnCallback, this);
-        timer_    = nh_.createTimer(ros::Duration(0.02), &ResetFourElement::timerCallback, this);
+        timer_    = nh_.createTimer(ros::Duration(0.01), &ResetFourElement::timerCallback, this);
 
         // 变量初始化
         last_omega_body_.setZero();
